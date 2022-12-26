@@ -1,27 +1,35 @@
-﻿namespace Hash_Table;
+﻿using System.Security.Cryptography;
+using System.Text;
+
+namespace Hash_Table;
 
 public class HashTable
 {
+    private readonly int maxTableSize;
     private readonly int maxSize;
-
     private Dictionary<int, List<Node>> nodes = null;
-    public IReadOnlyCollection<KeyValuePair<int, List<Node>>> Nodes => nodes?.ToList()?.AsReadOnly();
 
-    public HashTable(int maxSize)
+    public IReadOnlyCollection<KeyValuePair<int, List<Node>>> Nodes => nodes?.ToList()?.AsReadOnly();
+    public int MaxLengthChain => nodes.Where(x => x.Value != null).Max(x => x.Value.Count);
+    public int MinLengthChain => nodes.Where(x => x.Value != null).Min(x => x.Value.Count);
+    public int Count { get; private set; }
+    public double FillFactor => (double)Count/maxTableSize;
+
+
+
+    public HashTable(int maxTableSize = 1000, int maxSize = 100000)
     {
+        this.maxTableSize = maxTableSize;
+        nodes = new Dictionary<int, List<Node>>(maxTableSize);
         this.maxSize = maxSize;
-        nodes = new Dictionary<int, List<Node>>(maxSize);
+        Count = 0;
     }
 
-    public void Insert(string key, string value)
+    public void Insert(int key, string value)
     {
-        if (string.IsNullOrEmpty(key))
+        if (Count > maxSize)
         {
-            throw new ArgumentNullException(nameof(key));
-        }
-        if (key.Length > maxSize)
-        {
-            throw new ArgumentException($"Максимальная длинна ключа составляет {maxSize} символов.", nameof(key));
+            Console.WriteLine($"Максимальная длинна таблицы составляет {maxTableSize} символов.");
         }
         if (string.IsNullOrEmpty(value))
         {
@@ -29,18 +37,13 @@ public class HashTable
         }
 
         var item = new Node(key, value);
-        var hash = GetHash(item.Key);
+        var hash = GetHashByDiv(item.Key);
         List<Node> hashTableItem = null;
 
         if (nodes.ContainsKey(hash))
         {
             hashTableItem = nodes[hash];
             var oldElementWithKey = hashTableItem.SingleOrDefault(i => i.Key == item.Key);
-            if (oldElementWithKey != null)
-            {
-                throw new ArgumentException($"Хеш-таблица уже содержит элемент с ключом {key}. Ключ должен быть уникален.", nameof(key));
-            }
-
             nodes[hash].Add(item);
         }
         else
@@ -48,20 +51,17 @@ public class HashTable
             hashTableItem = new List<Node> { item };
             nodes.Add(hash, hashTableItem);
         }
+        Count++;
     }
 
-    public void Delete(string key)
+    public void Delete(int key)
     {
-        if (string.IsNullOrEmpty(key))
+        if (Count > maxSize)
         {
-            throw new ArgumentNullException(nameof(key));
-        }
-        if (key.Length > maxSize)
-        {
-            throw new ArgumentException($"Максимальная длинна ключа составляет {maxSize} символов.", nameof(key));
+            Console.WriteLine($"Максимальная длинна таблицы составляет {maxTableSize} символов.");
         }
 
-        var hash = GetHash(key);
+        var hash = GetHashByDiv(key);
         if (!nodes.ContainsKey(hash))
         {
             return;
@@ -74,19 +74,16 @@ public class HashTable
         {
             hashTableItem.Remove(item);
         }
+        Count--;
     }
-    public string Search(string key)
+    public string Search(int key)
     {
-        if (string.IsNullOrEmpty(key))
+        if (Count > maxSize)
         {
-            throw new ArgumentNullException(nameof(key));
-        }
-        if (key.Length > maxSize)
-        {
-            throw new ArgumentException($"Максимальная длинна ключа составляет {maxSize} символов.", nameof(key));
+            Console.WriteLine($"Максимальная длинна таблицы составляет {maxTableSize} символов.");
         }
 
-        var hash = GetHash(key);
+        var hash = GetHashByDiv(key);
 
         if (!nodes.ContainsKey(hash))
         {
@@ -107,20 +104,6 @@ public class HashTable
 
         return null;
     }
-    private int GetHash(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-        if (value.Length > maxSize)
-        {
-            throw new ArgumentException($"Максимальная длинна ключа составляет {maxSize} символов.", nameof(value));
-        }
-
-        var hash = value.Length;
-        return hash;
-    }
 
     public void ShowHashTable()
     {
@@ -134,4 +117,47 @@ public class HashTable
         }
         Console.WriteLine();
     }
+
+    public void GeneratingValuesAndKeys(int sizeHash = 100000)
+    {
+        var start = Enumerable.Range(0, sizeHash).ToArray();
+        var randomKeys = new Random();
+        var randomValues = new Random();
+
+        var keys = new List<int>();
+        var values = new List<string>();
+
+        for (var i = 0; i < sizeHash; i++)
+            keys.Add(start[i] + randomKeys.Next() + i);
+
+        for (var j = 0; j < sizeHash; j++)
+        {
+            var s = "";
+            for (var i = 0; i < 5; i++)
+            {
+                var a = (char)randomValues.Next(0, 255);
+                s += a;
+            }
+            values.Add(s);
+        }
+
+        for(int i = 0; i < sizeHash; i++)
+        {
+            Insert(keys[i], values[i]);
+        }
+    }
+
+    private int GetHashByDiv(int key)
+    {
+        return Math.Abs(key.GetHashCode() % maxTableSize);
+    }
+
+    /*private int GetHashByMD5(int key)
+    {
+        var md5Hash = MD5.Create();
+        var sourceBytes = Encoding.UTF8.GetBytes(key.ToString());
+        var hashBytes = md5Hash.ComputeHash(sourceBytes);
+        var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+        return hash;
+    }*/
 }

@@ -2,16 +2,11 @@
 
 public class Node
 {
-    public string Key { get; private set; }
+    public int Key { get; private set; }
     public string Value { get; private set; }
 
-    public Node(string key, string value)
+    public Node(int key, string value)
     {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
         if (string.IsNullOrEmpty(value))
         {
             throw new ArgumentNullException(nameof(value));
@@ -23,6 +18,6 @@ public class Node
 
     public override string ToString()
     {
-        return Key;
+        return Key.ToString();
     }
 }
