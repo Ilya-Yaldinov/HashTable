@@ -16,6 +16,10 @@ public class Node
         Value = value;
     }
 
+    public void SetKey(int key) => Key = key;
+
+    public void SetValue(string value) => Value = value;
+
     public override string ToString()
     {
         return Key.ToString();
