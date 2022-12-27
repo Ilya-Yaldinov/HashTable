@@ -14,9 +14,7 @@ public class HashTable
     public int MaxLengthChain => nodes.Where(x => x.Value != null).Max(x => x.Value.Count);
     public int MinLengthChain => nodes.Where(x => x.Value != null).Min(x => x.Value.Count);
     public int Count { get; private set; }
-    public double FillFactor => (double)Count/maxTableSize;
-
-
+    public double FillFactor => (double)(Count / maxTableSize);
 
     public HashTable(int maxTableSize = 1000, int maxSize = 100000)
     {
@@ -35,7 +33,8 @@ public class HashTable
         }
         if (string.IsNullOrEmpty(value))
         {
-            throw new ArgumentNullException(nameof(value));
+            Console.WriteLine("Введенное вами значение является null или пусто.");
+            return;
         }
 
         var item = new Node(key, value);
@@ -61,6 +60,7 @@ public class HashTable
         var hash = GetHashByMult(key);
         if (!nodes.ContainsKey(hash))
         {
+            Console.WriteLine($"Введенный вами ключ \"{key}\" не существует.");
             return;
         }
 
@@ -69,16 +69,22 @@ public class HashTable
 
         if (item != null)
         {
+            Console.WriteLine($"Элемент \"{item}\" удален.");
             hashTableItem.Remove(item);
+        }
+        else
+        {
+            Console.WriteLine($"Под ключем \"{key}\" элемент не сужествует.");
         }
         Count--;
     }
+
     public string Search(int key)
     {
         var hash = GetHashByMult(key);
         if (!nodes.ContainsKey(hash))
         {
-            return null;
+            return $"Введенный вами ключ \"{key}\" не существует.";
         }
 
         var hashTableItem = nodes[hash];
@@ -88,22 +94,23 @@ public class HashTable
             var item = hashTableItem.SingleOrDefault(i => i.Key == key);
             if (item != null)
             {
-                return item.Value;
+                return key + " - " + item.Value;
             }
         }
-
-        return null;
+        return $"Под ключем \"{key}\" элемент не сужествует.";
     }
 
-    public void ShowHashTable()
+    public void ShowHashTable(int limit = 10)
     {
-        foreach (var item in nodes)
+        var newNodes = nodes.Take(limit);
+        foreach (var item in newNodes)
         {
             Console.WriteLine(item.Key);
             foreach (var value in item.Value)
             {
                 Console.WriteLine($"\t{value.Key} - {value.Value}");
             }
+            Console.WriteLine();
         }
         Console.WriteLine();
     }

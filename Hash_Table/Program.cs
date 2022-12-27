@@ -8,7 +8,7 @@ class Program
     {
         HashTable hash = new HashTable();
         hash.GeneratingValuesAndKeys();
-        StreamWriter sw = new StreamWriter("mult.csv");
+        /*StreamWriter sw = new StreamWriter("mult.csv");
         sw.WriteLine($"Fill Factor; {hash.FillFactor}");
         sw.WriteLine($"Max Chain; {hash.MaxLengthChain}");
         sw.WriteLine($"Min Chain; {hash.MinLengthChain}");
@@ -18,6 +18,6 @@ class Program
             sw.WriteLine($"{node.Value.Count}");
         }
 
-        sw.Close();
+        sw.Close();*/
     }
 }
