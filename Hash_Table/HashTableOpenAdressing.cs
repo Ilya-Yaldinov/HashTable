@@ -83,7 +83,7 @@ namespace Hash_Table
             var i = 0;
             int hash = LinearHashing(key, i);
 
-            while (nodes[hash] != null && nodes[hash].Key.Equals(key)) //проверяем ячейки, до тех пор, пока не находим пустую ячейку
+            while (nodes[hash] != null) //проверяем ячейки, до тех пор, пока не находим пустую ячейку
             {
                 i++;
                 hash = LinearHashing(key, i);
