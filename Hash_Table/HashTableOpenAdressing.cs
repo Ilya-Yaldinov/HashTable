@@ -20,11 +20,17 @@ namespace Hash_Table
         private int count;
         private float c1, c2 = 0.25f;
         private Node[] nodes;
+        private HashFunc hashFunc;
+        private Dictionary<int, int> hashDictionary = new Dictionary<int, int>();
 
-        public HashTableOpenAdressing(int size = 10000)
+        public int MaxClusterLength() => hashDictionary.Values.Max();
+        public IReadOnlyCollection<Node> Nodes => nodes?.ToList()?.AsReadOnly();
+
+        public HashTableOpenAdressing(int size = 200)
         {
             this.maxSize = size;
             nodes = new Node[maxSize];
+            hashFunc = new HashFunc(maxSize);
         }
 
         //Функция двойного хеширования
@@ -34,20 +40,19 @@ namespace Hash_Table
         }
 
         //Функция линейного хеширования 
-        public int LinearHashing(int value, int i)
+        public int LinearHashing(int key, int i)
         {
-            int stepHash = (i + 1) % maxSize;
-            return stepHash;
+            return Math.Abs((hashFunc.GetHashByMult(key) + i) % maxSize);
         }
 
         //Функция квадратичного хеширования
-        public int QuadraticHashing(int value, int i)
+        public int QuadraticHashing(int key, int i)
         {
-            double stepHash = (c1 * i + c2 * i * i) % maxSize;
-            return (int)stepHash;
+            double stepHash = (hashFunc.GetHashByDiv(key) * c1 * i + c2 * i * i) % maxSize;
+            return Math.Abs((int)stepHash);
         }
 
-        public int MaxClusterLength ()
+        /*public int MaxClusterLength ()
         {
             var max = 0;
             var current = 0;
@@ -65,7 +70,7 @@ namespace Hash_Table
                 }
 
                 return Math.Max(max, current);
-        }
+        }*/
 
 
         public void Insert(int key, string value)
@@ -89,6 +94,7 @@ namespace Hash_Table
                 hash = LinearHashing(key, i);
             }
             nodes[hash] = new Node(key, value);
+            hashDictionary.Add(hash, i);
         }
 
         public void Delete(int key)
@@ -113,7 +119,7 @@ namespace Hash_Table
             int i = 0;
             int hash = LinearHashing(key, i);
 
-            while (i < 10000) //проверяем все ячейки 
+            while (i < maxSize) //проверяем все ячейки 
             {
                 if (nodes[hash].Key == key)
                 {
@@ -136,7 +142,7 @@ namespace Hash_Table
             Console.WriteLine();
         }
 
-        public void GeneratingValuesAndKeys(int sizeHash = 10000)
+        public void GeneratingValuesAndKeys(int sizeHash = 200)
         {
             var start = Enumerable.Range(0, sizeHash).ToArray();
             var randomKeys = new Random();

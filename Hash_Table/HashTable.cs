@@ -9,6 +9,7 @@ public class HashTable
     private readonly int maxTableSize;
     private readonly int maxSize;
     private Dictionary<int, List<Node>> nodes = null;
+    private HashFunc hashFunc;
 
     public IReadOnlyCollection<KeyValuePair<int, List<Node>>> Nodes => nodes?.ToList()?.AsReadOnly();
     public int MaxLengthChain => nodes.Where(x => x.Value != null).Max(x => x.Value.Count);
@@ -22,6 +23,7 @@ public class HashTable
         nodes = new Dictionary<int, List<Node>>(maxTableSize);
         this.maxSize = maxSize;
         Count = 0;
+        hashFunc = new HashFunc(maxTableSize);
     }
 
     public void Insert(int key, string value)
@@ -38,7 +40,7 @@ public class HashTable
         }
 
         var item = new Node(key, value);
-        var hash = GetHashByMult(item.Key);
+        var hash = hashFunc.GetHashByMult(item.Key);
         List<Node> hashTableItem = null;
 
         if (nodes.ContainsKey(hash))
@@ -57,7 +59,7 @@ public class HashTable
 
     public void Delete(int key)
     {
-        var hash = GetHashByMult(key);
+        var hash = hashFunc.GetHashByMult(key);
         if (!nodes.ContainsKey(hash))
         {
             Console.WriteLine($"Введенный вами ключ \"{key}\" не существует.");
@@ -81,7 +83,7 @@ public class HashTable
 
     public string Search(int key)
     {
-        var hash = GetHashByMult(key);
+        var hash = hashFunc.GetHashByMult(key);
         if (!nodes.ContainsKey(hash))
         {
             return $"Введенный вами ключ \"{key}\" не существует.";
@@ -142,44 +144,5 @@ public class HashTable
         {
             Insert(keys[i], values[i]);
         }
-    }
-
-    private int GetHashByDiv(int key)
-    {
-        return Math.Abs(key.GetHashCode() % maxTableSize);
-    }
-
-    private int GetHashByMult(int key)
-    {
-        double goldenRatio = 0.618033;
-        return (int)Math.Abs(maxTableSize * (key.GetHashCode() * goldenRatio % 1));
-    }
-
-    private int GetHashByMD5(int key)
-    {
-        MD5 md5Hash = MD5.Create();
-        byte[] sourceBytes = Encoding.UTF8.GetBytes(key.ToString());
-        byte[] hashBytes = md5Hash.ComputeHash(sourceBytes);
-        int hash = BitConverter.ToInt32(hashBytes);
-        return Math.Abs(hash % maxTableSize);
-    }
-
-    private int GetHashBySHA256(int key)
-    {
-        SHA256 sha256Hash = SHA256.Create();
-        byte[] sourceBytes = Encoding.UTF8.GetBytes(key.ToString());
-        byte[] hashBytes = sha256Hash.ComputeHash(sourceBytes);
-        int hash = BitConverter.ToInt32(hashBytes);
-        return Math.Abs(hash % maxTableSize);
-    }
-
-    private int GetHashByPBKDF2(int key)
-    {
-        RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
-        byte[] salt = new byte[24];
-        provider.GetBytes(salt);
-
-        Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(key.ToString(), salt, 100000);
-        return Math.Abs(pbkdf2.GetHashCode() % maxTableSize);
     }
 }
